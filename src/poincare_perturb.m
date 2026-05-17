@@ -1,0 +1,610 @@
+% This file is part of MOSAIC version 1.0
+% MOSAIC is released under the GNU General Public License v3.0 (GPLv3):
+%
+% Copyright (c) 2026 Jian Bao (jbao@iphy.ac.cn)
+% Institute of Physics, Chinese Academy of Sciences
+%
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation, either version 3 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program.  If not, see <https://www.gnu.org/licenses/>.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%function B= poincare_perturb(np,np_buffer,mstep,tstep,qpart,apart,eq_curr,eq_gradB,E_input,pzeta_input,lambda_input,orb_plot_opt)
+%global eq ant unit passing_option ps_option
+% np=50;
+% np_buffer=0;
+% mstep=40000;
+% tstep/sqrt(E_ratio);
+% tstep = 2.4426*sqrt(1836)/10;
+% qpart;
+% apart;
+% eq_curr;
+% eq_gradB;
+E_input=E_tmp;
+pzeta_input=pzeta_tmp;
+lambda_input=lambda_tmp;
+
+t = tic;   % 开始计时
+psi_in=eq.psi(end)*psi_in_norm;
+psi_out=eq.psi(end)*psi_out_norm;
+% amp_mod=1/20;
+% sign_pa=-1;
+%ant.omega=0.0027;
+ant.omega=2*pi*omega_n*unit.gtc_utime;
+%% load
+%1 zpart(1,m): \psi
+%2 zpart(2,m): \theta
+%3 zpart(3,m): \zeta
+%4 zpart(4,m): \rho_{||}
+%5 zpart(5,m): \zeta without 2*pi periodicity
+%6 zpart(6,m): sqrt(\mu)
+%7 zpart(7,m): energy
+%8 zpart(8,m): pzeta
+%9 zpart(9,m): pitch
+%10 zpart(10,m): \theta without 2*pi periodicity
+%11 zpart(11,m): q
+%12 zpart(12,m): energy_prime = energy-(omega/n)*pzeta
+%13 zpart(13,m): energy by evolving power transfer equation
+
+cmratio = qpart/apart;
+c_inv = 1/qpart;
+
+B = struct;
+B.E = E_input(np_buffer+1:end-np_buffer);
+B.lambda = lambda_input(np_buffer+1:end-np_buffer);
+B.Pzeta_norm = pzeta_input(np_buffer+1:end-np_buffer);
+B.exist = cell(1,np); %'yes','no': whether the solution of particle coordinate exists
+B.type = cell(1,np); %'co-passing','counter-passing','trapped','potato','stagnation','inexistence'
+B.confine = cell(1,np);
+B.confine(:) = {'confined'}; %'confined','lost'
+init = struct;
+%figure;
+for m = 1:np
+    % Coordinate transformation accuracy. 5000 for ion; 50000 for electron
+    if qpart > 0
+        mpsi = 5000;
+    elseif qpart < 0
+        mpsi = 50000;
+    else
+        error('''qpart'' should be a number either positive or negative.');
+    end
+    psi_dum = linspace(0,eq.psiw,mpsi);
+    rho_para2_A = zeros(1,mpsi);
+    rho_para2_B = zeros(1,mpsi);
+    E_gtc_unit = B.E(1)*1000/unit.energy_norm;
+    Pzeta_gtc_unit = B.Pzeta_norm(1)*eq.psiw;
+    lambda = B.lambda(1);
+
+    psi_intersection = [];
+    ind_intersection = [];
+    theta_intersection = [];
+
+    th_birth = 0; % only should be 0 or pi.
+    n = 1; % only should be 1.
+    while isempty(psi_intersection)
+        if n > 2
+            break;
+        end
+
+        for i = 1:mpsi
+            b0_tmp =  qdspline.spline2d(0, psi_dum(i), th_birth, eq.lsp, eq.lst, eq.dpsi, eq.dtheta, eq.bsp);
+            gpsi_tmp = qdspline.spline1d(0, psi_dum(i), eq.lsp, eq.dpsi, eq.gpsi);
+            rho_para2_A(i) = (Pzeta_gtc_unit + psi_dum(i))^2/gpsi_tmp^2;
+            rho_para2_B(i) = 2*(apart/qpart^2)/b0_tmp^2*(1 - lambda*b0_tmp)*E_gtc_unit;
+        end
+
+        for i = 2:mpsi
+            Delta0 = rho_para2_A(i-1) - rho_para2_B(i-1);
+            Delta1 = rho_para2_A(i) - rho_para2_B(i);
+            if Delta0*Delta1 < 0
+                %{
+                if abs(Delta0) > abs(Delta1)
+                    psi_intersection  = [psi_intersection , psi_dum(i)];
+                    ind_intersection = [ind_intersection, i];
+                else
+                    psi_intersection  = [psi_intersection , psi_dum(i-1)];
+                    ind_intersection = [ind_intersection, i-1];
+                end
+                %}
+                delp_dum = psi_dum(i) - psi_dum(i-1);
+                x_dum = abs(Delta0)/(abs(Delta0) + abs(Delta1))*delp_dum;
+                psi_intersection  = [psi_intersection , psi_dum(i-1)+x_dum];
+
+                theta_intersection = [theta_intersection, th_birth];
+            end
+        end
+        n = n + 1;
+        th_birth = th_birth + pi;
+    end
+    clear th_birth;
+
+    if isempty(psi_intersection)
+        B.exist{m} = 'no';
+        B.confine{m} = 'non-defined';
+        B.type{m} = 'inexistence';
+        continue;
+    else
+        B.exist{m} = 'yes';
+    end
+
+    if qpart > 0
+        % note that the maximal length of *_intersection array is two, so choose 1 or 2.
+        if strcmp(passing_option,'co-passing')
+            ind_tmp = min(2,length(psi_intersection));
+        elseif strcmp(passing_option,'counter-passing')
+            ind_tmp = min(1,length(psi_intersection));
+        else
+            error('Wrong passing_option.')
+        end
+    elseif qpart < 0 % For negative charge electron, the locations of co- and counter-passing particles exchange
+        % note that the maximal length of *_intersection array is two, so choose 1 or 2.
+        if strcmp(passing_option,'co-passing')
+            ind_tmp = min(1,length(psi_intersection));
+        elseif strcmp(passing_option,'counter-passing')
+            ind_tmp = min(2,length(psi_intersection));
+        else
+            error('Wrong passing_option.')
+        end
+    else
+        error('''qpart'' should be a number either positive or negative.')
+    end
+    %init.psi_ind(m) = ind_intersection(ind_tmp);
+    init.psi(m) = psi_intersection(ind_tmp);
+    init.theta(m) = theta_intersection(ind_tmp);
+
+    init.psi(m)=m/(1.0+np);
+    pdum=init.psi(m);
+    
+    init.psi(m) =(1.0-pdum)*psi_in+pdum*psi_out;
+    if theta_rand==1
+        init.theta(m)=pi/16*rand;
+    else
+    init.theta(m)=0;
+    end
+    clear ind_tmp;
+
+    Eplus=E_prime_input*1000/unit.energy_norm;%%%%%%%%%%poincare
+
+
+    init.zeta(m) = 0;
+    init.gpsi(m) = qdspline.spline1d(0, init.psi(m), eq.lsp, eq.dpsi, eq.gpsi);
+    %init.rho_para(m) = (Pzeta_gtc_unit + init.psi(m))/init.gpsi(m); % guarantee correct sign
+
+
+
+    init.mu(m) = lambda*E_gtc_unit;
+
+    %plot(psi_dum,rho_para2_A,'r');hold on;
+    %plot(psi_dum,rho_para2_B,'b');hold on;
+    %plot(init.psi(m),rho_para2_A(init.psi_ind(m)),'o','linewidth',1,'markersize',10,'color','k');hold on;
+    %xlabel('psi (GTC\_unit)');
+    %ylabel('\rho_{||} (GTC\_unit)');
+    %%
+    zpart(1,m) = init.psi(m);
+    zpart(2,m) = init.theta(m);
+    zpart(3,m) = init.zeta(m);
+    %zpart(4,m) = init.rho_para(m);
+    zpart(6,m) = sqrt(init.mu(m));
+
+    zpart(5,m) = zpart(3,m);
+    zpart(10,m) = zpart(2,m);
+    zpart(13,m) = E_gtc_unit;
+
+    pdum = zpart(1,m);
+    tdum = zpart(2,m);
+    zdum = zpart(3,m);
+
+    mu = zpart(6,m)*zpart(6,m);
+
+    g = (qdspline.spline1d(0, pdum, eq.lsp, eq.dpsi, eq.gpsi));
+    %g=abs(g);
+    ri = qdspline.spline1d(0, pdum, eq.lsp, eq.dpsi, eq.ipsi);
+    gp = qdspline.spline1d(1, pdum, eq.lsp, eq.dpsi, eq.gpsi);
+    rip = qdspline.spline1d(1, pdum, eq.lsp, eq.dpsi, eq.ipsi);
+    q = qdspline.spline1d(0, pdum, eq.lsp, eq.dpsi, eq.qpsi);
+    deni = 1/(g*q + ri);
+
+    b = qdspline.spline2d(0, pdum, tdum, eq.lsp, eq.lst, eq.dpsi, eq.dtheta, eq.bsp);
+    dbdp = qdspline.spline2d(1, pdum, tdum, eq.lsp, eq.lst, eq.dpsi, eq.dtheta, eq.bsp);
+    dbdt = qdspline.spline2d(2, pdum, tdum, eq.lsp, eq.lst, eq.dpsi, eq.dtheta, eq.bsp);
+    zpart(4,m)=(apart*ant.omega/ant.n*g+sign_pa*sqrt((apart*ant.omega/ant.n*g)^2 ...
+        -2*apart*b^2*(ant.omega/ant.n*zpart(1,m)-Eplus+zpart(6,m)*zpart(6,m)*b)))/(b^2);
+    if imag(zpart(4,m))==0
+    ima_rho(m)=0;
+    else
+        ima_rho(m)=1;
+    end
+    num_ones = sum(ima_rho);
+
+    zpart(4,m)=real(zpart(4,m));
+    % upara = zpart(4,m)*b*cmratio;
+    % dedb = zpart(4,m)*zpart(4,m)*b*cmratio + c_inv*zpart(6,m)*zpart(6,m);
+    % 
+    % gg(m)=g;
+    % bb(m)=b;
+    % b_inv = 1.0/b;
+    % energy = mu*b + 0.5*apart*upara^2;
+    % zpart(13,m) = energy;
+    % pzeta = g*zpart(4,m)-pdum;
+    % pitch = mu/energy;
+    % energy_prime = energy - (ant.omega/ant.n)*qpart*pzeta;
+    % e01(m)=energy;
+    % e11(m)=energy_prime;
+    % p11(m)=pzeta;
+
+end
+Poini=struct;
+%if ~isfield(Poini, 'psi') || isempty(Poini.psi)
+Poini.psi =  [];
+Poini.u_para =  [];
+Poini.theta =  [];
+Poini.p_zeta =  [];
+Poini.E =  [];
+%end
+Poini.psi      = nan(0, np);
+Poini.u_para   = nan(0, np);
+Poini.theta    = nan(0, np);
+Poini.p_zeta   = nan(0, np);
+Poini.E        = nan(0, np);
+% push time loop
+var_num = 14;
+part_pos=zeros(mstep,var_num,np);
+
+%h=waitbar(0,'please wait');
+h=waitbar(0,'please wait');
+for m = 1:np-num_ones
+    N=np-num_ones;
+    percent = floor(m / N * 100);
+    last_percent=0;
+    if percent >= last_percent 
+        %fprintf('进度: %d%%\n', percent);
+        last_percent = percent;
+        str=['Processing...',num2str(percent),'%'];
+        waitbar((m - 1)/(np-num_ones - 1),h,str);
+    end
+    %t0=tic;
+    %str=['Processing...',num2str(((m-1)*mstep)/(np*mstep)*100),'%'];
+    %%waitbar(((m-1)*mstep)/(np*mstep),h,str);
+    if strcmp(B.exist{m},'no')
+        continue;
+    end
+row_now = 0;
+    for istep = 1:mstep
+
+        if zpart(1,m) > eq.psiw
+            B.confine{m} = 'lost';
+            break;
+        end
+
+        for irk = 1:2
+
+            if irk == 1
+                dtime = 0.5*tstep;
+                zpart0(1:7,m) = zpart(1:7,m);
+                zpart0(10,m) = zpart(10,m);
+                zpart0(13,m) = zpart(13,m);
+            else
+                dtime = tstep;
+            end
+
+            pdum = zpart(1,m);
+            tdum = zpart(2,m);
+            zdum = zpart(3,m);
+
+            mu = zpart(6,m)*zpart(6,m);
+
+            g = qdspline.spline1d(0, pdum, eq.lsp, eq.dpsi, eq.gpsi);
+            %g=abs(g);
+            ri = qdspline.spline1d(0, pdum, eq.lsp, eq.dpsi, eq.ipsi);
+            gp = qdspline.spline1d(1, pdum, eq.lsp, eq.dpsi, eq.gpsi);
+            rip = qdspline.spline1d(1, pdum, eq.lsp, eq.dpsi, eq.ipsi);
+            q = qdspline.spline1d(0, pdum, eq.lsp, eq.dpsi, eq.qpsi);
+            deni = 1/(g*q + ri);
+
+            b = qdspline.spline2d(0, pdum, tdum, eq.lsp, eq.lst, eq.dpsi, eq.dtheta, eq.bsp);
+            dbdp = qdspline.spline2d(1, pdum, tdum, eq.lsp, eq.lst, eq.dpsi, eq.dtheta, eq.bsp);
+            dbdt = qdspline.spline2d(2, pdum, tdum, eq.lsp, eq.lst, eq.dpsi, eq.dtheta, eq.bsp);
+            upara = zpart(4,m)*b*cmratio;
+            dedb = zpart(4,m)*zpart(4,m)*b*cmratio + c_inv*zpart(6,m)*zpart(6,m);
+
+
+
+            b_inv = 1.0/b;
+            energy = mu*b + 0.5*apart*upara^2;
+            pzeta = g*zpart(4,m)-pdum;
+            pitch = mu/energy;
+            energy_prime = energy - (ant.omega/ant.n)*qpart*pzeta;
+            if irk == 1
+                % g0 = g;
+                % ri0 =ri;
+                % q0 = q;
+                % %deni = 1/(g*q + ri);
+                % b0 =b;
+                % mu0 =mu;
+                % upara0 = upara;
+                % b0_inv = 1.0/b0;
+                % energy0 = energy;
+                % pzeta0 = pzeta;
+                theta0_prime=(ant.n*zdum-ant.omega*tstep*(istep));
+                int_theta0=floor(theta0_prime/2/pi);
+                mod_theta0=mod(theta0_prime,2*pi);
+            end
+
+            if pdum > ant.psi(end)
+                ind_ant = length(ant.psi);
+            elseif pdum < ant.psi(1)
+                ind_ant = 1;
+            else
+                [~,ind_ant] = min(abs(pdum-ant.psi));
+            end
+
+            dptdp = 0.0;
+            dptdt = 0.0;
+            dptdz = 0.0;
+
+            for i = 1:ant.num_modes
+                phase = - ant.m_modes(i)*tdum + ant.n*zdum - ant.omega*tstep*(istep+0.5*irk);
+                phi_r = amp_mod*ant.phi_real{i}(ind_ant);
+                phi_i = amp_mod*ant.phi_imag{i}(ind_ant);
+                dphi_r = amp_mod*ant.dptdp_real{i}(ind_ant);
+                dphi_i = amp_mod*ant.dptdp_imag{i}(ind_ant);
+
+                dptdp = dptdp + dphi_r*cos(phase) - dphi_i*sin(phase);
+                dptdt = dptdt + ant.m_modes(i)*phi_r*sin(phase) + ant.m_modes(i)*phi_i*cos(phase);
+                dptdz = dptdz - ant.n*phi_r*sin(phase) - ant.n*phi_i*cos(phase);
+            end
+
+            apara = 0.0;
+            dapdp = 0.0;
+            dapdt = 0.0;
+            dapdz = 0.0;
+            paparapt = 0.0;
+
+            for i = 1:ant.num_modes
+                phase = - ant.m_modes(i)*tdum + ant.n*zdum - ant.omega*tstep*(istep+0.5*irk);
+                apara_r = amp_mod*ant.apara_real{i}(ind_ant);
+                apara_i = amp_mod*ant.apara_imag{i}(ind_ant);
+                dapara_r = amp_mod*ant.dapdp_real{i}(ind_ant);
+                dapara_i = amp_mod*ant.dapdp_imag{i}(ind_ant);
+
+                apara = apara + apara_r*cos(phase) - apara_i*sin(phase);
+                dapdp = dapdp + dapara_r*cos(phase) - dapara_i*sin(phase);
+                dapdt = dapdt + ant.m_modes(i)*apara_r*sin(phase) + ant.m_modes(i)*apara_i*cos(phase);
+                dapdz = dapdz - ant.n*apara_r*sin(phase) - ant.n*apara_i*cos(phase);
+                paparapt = paparapt + ant.omega*apara_r*sin(phase) + ant.omega*apara_i*cos(phase);
+            end
+
+            lam = apara*b_inv;
+            dlamdp = (dapdp - lam*dbdp)*b_inv;
+            dlamdt = (dapdt - lam*dbdt)*b_inv;
+            dlamdz = dapdz*b_inv;
+            plampt = paparapt*b_inv;
+
+            %rdot = ((gp*zpart(4,m)*eq_curr-1)*dedb*dbdt)*deni;
+            rdot = ((gp*(zpart(4,m)*eq_curr + lam) + g*dlamdp -1)*(dedb*dbdt + dptdt))*deni...
+                - ((q + (zpart(4,m) + lam)*rip + ri*dlamdp)*(dptdz))*deni...
+                + ((ri*dlamdz - g*dlamdt)*(dedb*dbdp + dptdp))*deni - plampt;
+
+            %pdot = eq_gradB*(-dedb*g*dbdt)*deni;
+            pdot = eq_gradB*(-dedb*g*dbdt)*deni + (ri*dptdz - g*dptdt)*deni + upara*b*(g*dlamdt - ri*dlamdz)*deni;
+
+            %tdot = (upara*b*(1-zpart(4,m)*gp*eq_curr) + g*dedb*dbdp*eq_gradB)*deni;
+            tdot = (upara*b*(1 - (zpart(4,m)*eq_curr + lam)*gp - g*dlamdp) + g*(dedb*dbdp*eq_gradB + dptdp))*deni;
+
+            %zdot = (upara*b*(q+zpart(4,m)*rip*eq_curr) - ri*dedb*dbdp*eq_gradB)*deni;
+            zdot = (upara*b*(q + (zpart(4,m)*eq_curr + lam)*rip + ri*dlamdp) - ri*(dedb*dbdp*eq_gradB + dptdp))*deni;
+
+            %vpdot = - (1 - (zpart(4,m)*eq_curr + lam)*gp - g*dlamdp)*(c_inv*zpart(6,m)*zpart(6,m)*dbdt)*deni...
+            %    - (1 - (zpart(4,m)*eq_curr + lam)*gp - g*dlamdp)*dptdt*deni - g*zpart(4,m)*dbdp*b_inv*dptdt*deni...
+            %    - (q + (zpart(4,m)*eq_curr + lam)*rip + ri*dlamdp)*dptdz*deni + ri*zpart(4,m)*dbdp*b_inv*dptdz*deni...
+            %    + ((ri*dlamdz - g*dlamdt)*(c_inv*zpart(6,m)*zpart(6,m)*dbdp + dptdp))*deni + g*zpart(4,m)*dbdt*b_inv*dptdp*deni - plampt;
+
+            %rdot = vpdot - zpart(4,m)*dbdp*b_inv*pdot - zpart(4,m)*dbdt*b_inv*tdot;
+
+            Edot = qpart*dedb*((ri*dptdz - g*dptdt)*dbdp + g*dptdp*dbdt)*deni + qpart*zpart(4,m)*zpart(4,m)*b*cmratio*(b*gp*dptdt - b*rip*dptdz)*deni...   % perpendicular transfer
+                - qpart*upara*b*((q*dptdz + dptdt)*deni + plampt)...   % parallel transfer
+                - qpart*upara*b*(ri*dlamdp*dptdz - g*dlamdp*dptdt + (g*dlamdt - ri*dlamdz)*dptdp + lam*rip*dptdz - lam*gp*dptdt)*deni;   % nonlinear ponderomotive force transfer
+
+            zpart(1,m) = zpart0(1,m) + pdot*dtime;
+            zpart(2,m) = zpart0(2,m) + tdot*dtime;
+            zpart(3,m) = zpart0(3,m) + zdot*dtime;
+            zpart(4,m) = zpart0(4,m) + rdot*dtime;
+            zpart(5,m) = zpart0(5,m) + zdot*dtime;
+            zpart(10,m) = zpart0(10,m) + tdot*dtime;
+            zpart(13,m) = zpart0(13,m) + Edot*dtime;
+
+            zpart(2,m) = mod(zpart(2,m),2*pi);
+            zpart(3,m) = mod(zpart(3,m),2*pi);
+
+            zpart(7,m) = energy*unit.energy_norm/1000;
+            zpart(8,m) = pzeta/eq.psiw;
+            zpart(9,m) = pitch;
+            zpart(11,m) = q;
+            zpart(12,m) = energy_prime*unit.energy_norm/1000;
+            if irk == 2
+                Rtmp = qdspline.spline2d(0, zpart(1,m), zpart(2,m), eq.lsp, eq.lst, eq.dpsi, eq.dtheta, eq.xsp);
+                Ztmp = qdspline.spline2d(0, zpart(1,m), zpart(2,m), eq.lsp, eq.lst, eq.dpsi, eq.dtheta, eq.zsp);
+                part_pos(istep,:,m) = [zpart(1,m) zpart(2,m) zpart(3,m) zpart(4,m) zpart(5,m) zpart(7,m) zpart(8,m) zpart(9,m) zpart(10,m) zpart(11,m) zpart(12,m) zpart(13,m)*unit.energy_norm/1000 Rtmp Ztmp];
+            end
+
+        end
+        %run diag_poin
+        pdum=zpart(1,m);
+        tdum=zpart(2,m);
+        zdum=zpart(3,m);
+        mu=zpart(6,m)*zpart(6,m);
+        g=qdspline.spline1d(0,pdum,eq.lsp,eq.dpsi,eq.gpsi);
+        %g=abs(g);
+        ri=qdspline.spline1d(0,pdum,eq.lsp,eq.dpsi,eq.ipsi);
+        q=qdspline.spline1d(0,pdum,eq.lsp,eq.dpsi,eq.qpsi);
+        b=qdspline.spline2d(0,pdum,tdum,eq.lsp,eq.lst,eq.dpsi,eq.dtheta,eq.bsp);
+        upara=zpart(4,m)*b*cmratio;
+        b_inv=1.0/b;
+        energy=mu*b+0.5*apart*upara^2;
+        pzeta=g*zpart(4,m)-pdum;
+        pitch=mu/energy;
+        energy_prime=energy-(ant.omega/ant.n)*qpart*pzeta;
+        theta_prime=(ant.n*zdum-ant.omega*tstep*(istep+1));
+        int_theta=floor(theta_prime/2/pi);
+        
+        mod_theta=mod(theta_prime,2*pi);
+        %mod_theta=theta_prime-int_theta*2*pi;
+        %aaa(istep,m)=abs(int_theta-int_theta0);
+        if(abs(int_theta-int_theta0)>0.5 &&abs(int_theta-int_theta0)<2.5 && istep>100)
+            if(mod_theta<mod_theta0)
+                large=zpart(:,m);
+                small=zpart0(:,m);
+                large(3)=mod_theta;
+                small(3)=mod_theta0;
+            else
+                large=zpart0(:,m);
+                small=zpart(:,m);
+                large(3)=mod_theta0;
+                small(3)=mod_theta;
+            end
+            judge_pi=large(3)-(large(3)-(2*pi))*(small(3)-large(3))/(small(3)+(2*pi)-large(3));
+            if abs(judge_pi-pi)<pi/50%%%%%%%%%%%%%%%%
+            psii=large(1)-(large(3)-(2*pi))*(small(1)-large(1))/(small(3)+(2*pi)-large(3));
+            u_psii=large(4)-(large(3)-(2*pi))*(small(4)-large(4))/(small(3)+(2*pi)-large(3));
+            u_thetai=large(6)-(large(3)-(2*pi))*(small(6)-large(6))/(small(3)+(2*pi)-large(3));
+            p_zetai=large(8)-(large(3)-(2*pi))*(small(8)-large(8))/(small(3)+(2*pi)-large(3));
+            Ei=large(7)-(large(3)-(2*pi))*(small(7)-large(7))/(small(3)+(2*pi)-large(3));
+                       
+            if(abs(zpart(2,m)-zpart0(2,m))<pi)
+                thetai=large(2)-(large(3)-(2*pi))*(small(2)-large(2))/(small(3)+(2*pi)-large(3));
+            end
+            if(abs(zpart(2,m)-zpart0(2,m))>pi)
+                if(small(2)>large(2))
+                    thetai=small(2)-small(3)*(small(2)-large(2)-(2*pi))/(small(3)+(2*pi)-large(3));
+                elseif(small(2)<large(2))
+                    thetai=small(2)+(2*pi)-small(3)*(small(2)+(2*pi)-large(2))/(small(3)+(2*pi)-large(3));
+                end
+            end
+            thetai=mod(thetai,2*pi);
+            
+            Rtmp = qdspline.spline2d(0, psii, thetai, eq.lsp, eq.lst, eq.dpsi, eq.dtheta, eq.xsp);
+            Ztmp = qdspline.spline2d(0, psii, thetai, eq.lsp, eq.lst, eq.dpsi, eq.dtheta, eq.zsp);
+
+            row_now = row_now+1;
+            %llag(row_now,m)=large(3);
+            %pzetal(row_now,m)=large(8);
+            %pzetas(row_now,m)=small(8);
+            %lsma(row_now,m)=small(3);
+            Poini.psi(row_now, m)      = psii;
+            Poini.u_para(row_now, m)   = u_psii;
+            Poini.theta(row_now, m)    = thetai;
+            Poini.p_zeta(row_now, m)   = p_zetai;
+            Poini.E(row_now, m)        = Ei;
+            Poini.R(row_now, m)        = Rtmp;
+            Poini.Z(row_now, m)        = Ztmp;
+
+           end
+        end
+    end
+
+
+    %disp(['No.' num2str(m),' particle push: ',num2str(toc(t0)),' (second)']);
+end
+%delete(h);
+if strcmp(orb_plot_opt,'on')
+    figure;
+    for m = 1:np
+        if strcmp(B.exist{m},'no')
+            continue;
+        end
+        plot(part_pos(:,end-1,m),part_pos(:,end,m),'r.');hold on;
+        [~,ind] = min(abs(init.psi(m) - eq.psi));
+        plot(squeeze(eq.xsp(1,ind,:)),squeeze(eq.zsp(1,ind,:)),'k--','linewidth',2);hold on;
+    end
+    plot(squeeze(eq.xsp(1,end,:)),squeeze(eq.zsp(1,end,:)),'k-','linewidth',2);hold on;
+    plot(eq.xsp(1,1,1),eq.zsp(1,1,1),'*','linewidth',1,'markersize',10);hold on;
+    daspect([1 1 1]);
+    grid on;
+end
+save_omega=0;
+if save_omega==1
+B.omega_b = zeros(1,np);
+B.q_avrg = zeros(1,np);
+B.omega_phi = zeros(1,np);
+B.omega_d = zeros(1,np);
+
+for m = 1:np
+    if strcmp(B.exist{m},'no') | strcmp(B.confine{m},'lost')
+        continue;
+    end
+    pol_cir_num =  abs((part_pos(end,9,m)-part_pos(1,9,m))/(2*pi)); % The number of poloidal orbit
+
+    if all(sign(part_pos(:,4,m))==sign(part_pos(1,4,m))) & pol_cir_num > 1 % co-passing, counter-passing
+
+        sign_theta = sign(part_pos(end,9,m) - part_pos(1,9,m));
+        [~,step_one_taub] = min(abs(part_pos(:,9,m) - part_pos(1,9,m) - sign_theta*2*pi));
+        B.omega_b(m) = (part_pos(step_one_taub,9,m)-part_pos(1,9,m))/(step_one_taub*tstep/unit.omegacp); % Poloidal freq, the unit is (rad/s)
+        B.q_avrg(m) = mean(part_pos(1:step_one_taub,10,m));
+        dzeta_one_taub = (part_pos(step_one_taub,5,m) - part_pos(1,5,m)); % Toroidal angle increment after one poloidal time period
+        tau_b = abs(2*pi/B.omega_b(m)); % Time period of one poloidal orbit, the unit is (second)
+        B.omega_phi(m) = dzeta_one_taub/tau_b; % toroidal frequency
+        B.omega_d(m) = (dzeta_one_taub - (tau_b*B.omega_b(m))*B.q_avrg(m))/tau_b; % precession frequency
+        if B.q_avrg(m) < 0 % BT direction is opposite to Ip
+            if sign(part_pos(1,4,m)/qpart) > 0 % positive BT corresponds to negative Ip
+                B.type{m} = 'counter-passing';
+            elseif sign(part_pos(1,4,m)/qpart) < 0 % negative BT corresponds to positive Ip
+                B.type{m} = 'co-passing';
+            end
+        elseif B.q_avrg(m) > 0
+            if sign(part_pos(1,4,m)/qpart) > 0 % positive BT corresponds to positive Ip
+                B.type{m} = 'co-passing';
+            elseif sign(part_pos(1,4,m)/qpart) < 0 % negative BT corresponds to negative Ip
+                B.type{m} = 'counter-passing';
+            end
+        end
+
+    else % trapped, potato, stagnation
+        [pks,locs] = findpeaks(part_pos(:,5,m));
+        if isempty(locs)
+            [~,locs] = findpeaks(part_pos(:,9,m));
+            pks = part_pos(locs,5,m);
+        end
+        B.omega_d(m) = (pks(end)-pks(1))/((locs(end)-locs(1))*tstep/unit.omegacp);
+        B.omega_phi(m) = B.omega_d(m);
+        tau_b = (locs(end) - locs(1))/(length(locs) - 1)*tstep/unit.omegacp;
+        B.q_avrg(m) = mean(part_pos(locs(1):locs(end),10,m));
+        B.omega_b(m) = 2*pi/tau_b;
+        if all(sign(part_pos(:,4,m))==sign(part_pos(1,4,m)))
+            B.type{m} = 'stagnation';
+        else
+            if pol_cir_num < 1
+                B.type{m} = 'trapped';
+            else
+                B.type{m} = 'potato';
+            end
+        end
+    end
+end
+
+end
+
+%% Only for the usage of testing particle orbit
+%if strcmp(ps_option,'PLam_traj')
+    B.part_pos = part_pos;
+    B.init = init;
+    B.E_motion = B.part_pos(:,6,:);
+    B.Pzeta_norm = B.part_pos(:,7,:);
+    B.pitch = B.part_pos(:,8,:);
+    B.E_prime = B.part_pos(:,11,:);
+    B.E_power = B.part_pos(:,12,:);
+    B.R = B.part_pos(:,end-1,:);
+    B.Z = B.part_pos(:,end,:);
+%end
+
+%end
+
+elapsed = toc(t);  % 结束计时并返回耗时
+%fprintf('运行时间：%.4f 秒\n', elapsed);

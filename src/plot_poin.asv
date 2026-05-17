@@ -1,0 +1,68 @@
+figure('name','region',...
+        'unit','normalized',...
+        'position',[0.0,0.0,0.3,0.45],... % figure position
+        'DefaultAxesFontSize',18,...
+        'DefaultAxesFontWeight','normal',...
+        'DefaultAxesLineWidth',1,...
+        'DefaultAxesTickLength',[0.02,0.015]);
+%for m=25
+for m=1:size(Poini.psi,2)-num_ones
+    poin_size=5;
+x = Poini.E(:,m);
+%x = Poini.p_zeta(:,m);
+%y = (Poini.theta(:,m));
+y=mod(Poini.theta(:,m)+pi, 2*pi) - pi;
+x(find(x==0))=nan;
+y(find(y==0))=nan;
+validIdx = ~isnan(x) & ~isnan(y);
+x= x(validIdx);
+y= y(validIdx);
+
+scatter(x, y,poin_size, 'filled');hold on
+%scatter(x, y,poin_size, 'filled');hold on
+
+end
+axis tight
+xlim([PoinE_down,PoinE_up]);
+%xlim([-0.1,0.13]);
+
+%xlim([26,35]);
+box on
+xlabel('E(keV)','fontsize',25)
+ylabel('\theta','fontsize',25)
+saveas(gca,'../output/Poin_E_theta','epsc');
+
+figure('name','region',...
+        'unit','normalized',...
+        'position',[0.0,0.0,0.3,0.45],... % figure position
+        'DefaultAxesFontSize',18,...
+        'DefaultAxesFontWeight','normal',...
+        'DefaultAxesLineWidth',1,...
+        'DefaultAxesTickLength',[0.02,0.015]);
+%for m=25
+for m=1:size(Poini.psi,2)-num_ones
+    poin_size=5;
+%x = Poini.E(:,m);
+x = Poini.p_zeta(:,m);
+%y = (Poini.theta(:,m));
+y=mod(Poini.theta(:,m)+pi, 2*pi) - pi;
+x(find(x==0))=nan;
+y(find(y==0))=nan;
+validIdx = ~isnan(x) & ~isnan(y);
+x= x(validIdx);
+y= y(validIdx);
+
+scatter(x, y,poin_size, 'filled');hold on
+%scatter(x, y,poin_size, 'filled');hold on
+
+end
+axis tight
+xlim([PoinPzeta_down,PoinPzeta_up]);
+%xlim([-0.1,0.1]);
+
+%xlim([26,35]);
+box on
+xlabel('P_\zeta/\psi_w','fontsize',25)
+ylabel('\theta','fontsize',25)
+saveas(gca,['../output/Poin_Pzeta_theta' ],'epsc');
+
