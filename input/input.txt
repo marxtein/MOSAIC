@@ -1,0 +1,10 @@
+MOSAIC/
+├── src/                  # Source code
+├── input/                # Input data
+│   ├── gtc_benchmark/
+│   ├── data3d_GB.mat
+│   ├── data3d_MG.mat
+│   ├── data3d_PLam.mat
+│   ├── profile_rsae.dat
+│   ├── spdata_rsae.dat
+│   └── g159243.00805
