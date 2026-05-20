@@ -1,4 +1,4 @@
-% This file is part of MOSAIC version 1.0
+﻿% This file is part of MOSAIC version 1.0
 % MOSAIC is released under the GNU General Public License v3.0 (GPLv3):
 %
 % Copyright (c) 2026 Jian Bao (jbao@iphy.ac.cn)
@@ -142,10 +142,10 @@ classdef ps_cls2
             A.Pzeta_bound1 = interp1(E_tmp2, Pzeta_tmp2, A.E_uni_grid, 'spline');
             A.Pzeta_bound2 = interp1(E_tmp32, Pzeta_tmp32, A.E_uni_grid, 'spline');
             A.Pzeta_bound3 = interp1(E_tmp4, Pzeta_tmp4, A.E_uni_grid, 'spline');
-            diff_y = A.Pzeta_bound2 -A.Pzeta_bound3;                        % 两条曲线的差
+            diff_y = A.Pzeta_bound2 -A.Pzeta_bound3;                        % Difference of two curves
 
-            sign_change = diff_y(1:end-1) .* diff_y(2:end) < 0;  % 判断符号是否变化
-            cross_idx = find(sign_change);            % 交点区间的下标
+            sign_change = diff_y(1:end-1) .* diff_y(2:end) < 0;  % Check sign change
+            cross_idx = find(sign_change);            % Index of intersection interval
             %size(cross_idx)
             if isempty(cross_idx)==0
             A.Pzeta_bound2(1:cross_idx(end))=nan;

@@ -1,4 +1,4 @@
-% This file is part of MOSAIC version 1.0
+﻿% This file is part of MOSAIC version 1.0
 % MOSAIC is released under the GNU General Public License v3.0 (GPLv3):
 %
 % Copyright (c) 2026 Jian Bao (jbao@iphy.ac.cn)
@@ -87,28 +87,28 @@ f.ppsi = qdspline.constructSpline1d(0, f.lsp, f.dpsi, f.ppsi);
 %         'DefaultAxesLineWidth',1,...
 %         'DefaultAxesTickLength',[0.01,0.01]);
 % 
-% % 画磁场等高线
+% % Draw magnetic field contours
 % [C,hContour] = contourf(squeeze(f.xsp(1,:,:)*R0),squeeze(f.zsp(1,:,:)*R0),squeeze(f.bsp(1,:,:)),100);
 % set(hContour,'linecolor','none');
 % hold on;
 % 
-% step = 5;      % 稀疏度
-% lw = 0.4;      % 线条粗细
+% step = 5;      % Sparsity
+% lw = 0.4;      % Line thickness
 % size(f.xsp)
-% % 画稀疏网格线
+% % Draw sparse grid lines
 % %hMesh = plot(squeeze(f.xsp(1,1:step:end,1:step:end)), squeeze(f.zsp(1,1:step:end,1:step:end)), 'k-', 'LineWidth', lw);
 % %plot(squeeze(f.xsp(1,1:step:end,1:step:end))', squeeze(f.zsp(1,1:step:end,1:step:end))', 'k-', 'LineWidth', lw);
-% % 取出网格（只取一次，干净）
+% % Extract grid (once only, clean)
 % x = squeeze(f.xsp(1,:,:))*R0;
 % z = squeeze(f.zsp(1,:,:))*R0;
 % 
-% % 【正确画法】只画网格线，不断线、自动闭合、最稳定
-% hMesh =plot(x(1:step-1:end,:)', z(1:step-1:end,:)', 'k-', 'LineWidth', lw);   % 横线
-% plot(x(:,1:step:end),  z(:,1:step:end),  'k-', 'LineWidth', lw);   % 竖线
-% % 坐标轴设置
+% % [Correct drawing method]Draw grid lines only, no breaks, auto-closing, most stable
+% hMesh =plot(x(1:step-1:end,:)', z(1:step-1:end,:)', 'k-', 'LineWidth', lw);   % Horizontal lines
+% plot(x(:,1:step:end),  z(:,1:step:end),  'k-', 'LineWidth', lw);   % Vertical lines
+% % Axis settings
 % colorbar;
 % cb = colorbar;
-% % 给色条加标签，就是B0/Ba
+% % Add label to colorbar: B0/Ba
 % cb.Label.String = '$B_0/B_a$';
 % cb.Label.Interpreter = 'latex';
 % cb.Label.FontSize = 20;
@@ -120,8 +120,8 @@ f.ppsi = qdspline.constructSpline1d(0, f.lsp, f.dpsi, f.ppsi);
 % xlabel('$X$/m','fontsize',25,'Interpreter','latex');
 % ylabel('$Z$/m','fontsize',25,'Interpreter','latex');
 % 
-% % ===================== 【正确图例，绝对不报错】 =====================
-% % 只画网格图例，colorbar 本身就代表 B0/Ba
+% % ===================== [Correct legend, guaranteed no errors] =====================
+% % Draw grid legend only; colorbar itself represents B0/Ba
 % legend(hMesh, 'Mesh Grid', ...
 %     'Interpreter','latex','Location','best','FontSize',23);
 % saveas(gca,'../output/B_mesh','epsc');

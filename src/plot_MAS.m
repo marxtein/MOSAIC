@@ -1,4 +1,4 @@
-% This file is part of MOSAIC version 1.0
+﻿% This file is part of MOSAIC version 1.0
 % MOSAIC is released under the GNU General Public License v3.0 (GPLv3):
 %
 % Copyright (c) 2026 Jian Bao (jbao@iphy.ac.cn)
@@ -88,7 +88,7 @@ if iplot == 1
     axis([MG.pzeta_norm0 MG.pzeta_norm1 14 E_max]);
     % axis([-1 MG.pzeta_norm1 14 E_max]);
 
-    %---------------------------------------------------------------------------------------------图例
+    %---------------------------------------------------------------------------------------------Legend
     % if strcmp(passing_option,'counter-passing')
     %     posx = min(xlim) + 0.03*range(xlim);
     %     posy = min(ylim) + 0.13*range(ylim);
@@ -102,7 +102,7 @@ if iplot == 1
     % fill([posx posx+w posx+w posx],[posy-h/2 posy-h/2 posy+h posy+h],'w',...
     %     'EdgeColor','k','LineWidth',1.0);
     %
-    % % 小椭圆渐变
+    % % Small elliptical gradient
     % x0 = posx + 0.08*range(xlim);
     % y0 = posy + 0.15*range(ylim);
     % a = 0.03 * range(xlim);
@@ -116,7 +116,7 @@ if iplot == 1
     % end
     % plot(x0 + a*cos(theta), y0 + b*sin(theta), 'k', 'LineWidth', 1.2);
     %
-    % % 图例文字
+    % % Legend text
     % text(x0 + 0.06*range(xlim), y0, '\it{p}', ...
     %     'FontSize',23,'FontName','Times New Roman', ...
     %     'FontWeight','bold','Interpreter','tex', ...
@@ -212,7 +212,7 @@ elseif iplot == 2
     %annotation('textbox',[0.2 0.28 0.9 0.03],'String',strings,'fontsize',30,'edgecolor','none')
     axis([GB.pzeta_norm0 GB.pzeta_norm1 0 max(GB.lambda_pzeta(1,:))]);
 
-    %---------------------------------------------------------------------------------------------图例
+    %---------------------------------------------------------------------------------------------Legend
     % if strcmp(passing_option,'counter-passing')
     %     posx = min(xlim) + 0.03*range(xlim);
     %     posy = min(ylim) + 0.77*range(ylim);
@@ -226,7 +226,7 @@ elseif iplot == 2
     % fill([posx posx+w posx+w posx],[posy-h/2 posy-h/2 posy+h posy+h],'w',...
     %     'EdgeColor','k','LineWidth',1.0);
     % 
-    % % 小椭圆渐变
+    % % Small elliptical gradient
     % x0 = posx + 0.08*range(xlim);
     % y0 = posy + 0.15*range(ylim);
     % a = 0.03 * range(xlim);
@@ -240,7 +240,7 @@ elseif iplot == 2
     % end
     % plot(x0 + a*cos(theta), y0 + b*sin(theta), 'k', 'LineWidth', 1.2);
     % 
-    % % 图例文字
+    % % Legend text
     % text(x0 + 0.06*range(xlim), y0, '\it{p}', ...
     %     'FontSize',23,'FontName','Times New Roman', ...
     %     'FontWeight','bold','Interpreter','tex', ...
@@ -264,7 +264,7 @@ elseif iplot == 2
         %saveas(gca,'../output/pzeta_lambda_fix_mu_co','epsc');
     end
 elseif iplot == 3
-    colors = {'parula','jet','hot','turbo'}; % 不同 colormap
+    colors = {'parula','jet','hot','turbo'}; % Different colormaps
     fields = {'omega_b','omega_d','omega_phi','q_avrg'};
   
     l_res = (omega0 - n*char_freq.omega_phi)./char_freq.omega_b; % Eq. (70) in Bao et al 24 NF
@@ -323,7 +323,7 @@ elseif iplot == 3
     plot(PLam_2D.Pzeta(5,:),PLam_2D.lambda(5,:),'m','linewidth',2);hold on;
     plot(PLam_2D.Pzeta(6,:),PLam_2D.lambda(6,:),'k:','linewidth',2);hold on;
     plot(PLam_2D.Pzeta_bound_right,PLam_2D.lam_uni_grid,'c-.','linewidth',2);hold on;
-    %q=3等值线
+    %q=3 contour
     [C,h] =contour(char_freq.Pzeta_norm, char_freq.lambda, ...
         char_freq.(fields{4}), [0 -3], 'LineWidth', 2, 'Color','k');
     h.LineStyle = '--';
@@ -336,7 +336,7 @@ elseif iplot == 3
    % strings = ['E = ',num2str(PLam_2D.energy_out),'keV'];
     %annotation('textbox',[0.64 0.79 0.9 0.03],'String',strings,'fontsize',25,'edgecolor','none')
 
-    %---------------------------------------------------------------------------------------------图例
+    %---------------------------------------------------------------------------------------------Legend
     % if strcmp(passing_option,'counter-passing')
     %     posx = min(xlim) + 0.05*range(xlim);
     %     posy = min(ylim) + 0.77*range(ylim);
@@ -350,7 +350,7 @@ elseif iplot == 3
     % fill([posx posx+w posx+w posx],[posy-h/2 posy-h/2 posy+h posy+h],'w',...
     %     'EdgeColor','k','LineWidth',1.0);
     % 
-    % % 小椭圆渐变
+    % % Small elliptical gradient
     % x0 = posx + 0.08*range(xlim);
     % y0 = posy + 0.15*range(ylim);
     % a = 0.03 * range(xlim);
@@ -364,7 +364,7 @@ elseif iplot == 3
     % end
     % plot(x0 + a*cos(theta), y0 + b*sin(theta), 'k', 'LineWidth', 1.2);
     % 
-    % % 图例文字
+    % % Legend text
     % text(x0 + 0.06*range(xlim), y0, '\it{p}', ...
     %     'FontSize',23,'FontName','Times New Roman', ...
     %     'FontWeight','bold','Interpreter','tex', ...

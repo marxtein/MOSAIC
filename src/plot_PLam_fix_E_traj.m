@@ -1,4 +1,4 @@
-% This file is part of MOSAIC version 1.0
+﻿% This file is part of MOSAIC version 1.0
 % MOSAIC is released under the GNU General Public License v3.0 (GPLv3):
 %
 % Copyright (c) 2026 Jian Bao (jbao@iphy.ac.cn)
@@ -70,7 +70,7 @@ set(p(m),'position',[0.05+mod((m-1),5)*0.155   0.83-floor((m-1)/5)*0.195   0.17 
             title(['$l$=',num2str(m),' (',char_freq.type{m},')'],'Interpreter','latex');
             
         end
-        %ax = subplot(l_num,P_num,np); % 最后一个子图
+        %ax = subplot(l_num,P_num,np); % Last subplot
 hold on;
 
 
@@ -82,13 +82,13 @@ hold on;
 ax = axes('Position',[0 0 0.995 1.85],'Visible','off','HandleVisibility','off');
 hold(ax,'on');
 
-% 画三个看不见的线条，专门用于图例
-h1 = plot(ax, NaN, NaN, 'r-', 'LineWidth', 2);                 % 粒子轨迹
-h2 = plot(ax, NaN, NaN, 'k--', 'LineWidth', 2);               % 初始磁面
-h3 = plot(ax, NaN, NaN, 'k-', 'LineWidth', 2);                % 最外侧磁面
-h4 = plot(ax, NaN, NaN, 'k.', 'MarkerSize', 15);             % 磁轴 黑点
+% Draw three invisible lines, specifically for the Legend
+h1 = plot(ax, NaN, NaN, 'r-', 'LineWidth', 2);                 % Particle trajectory
+h2 = plot(ax, NaN, NaN, 'k--', 'LineWidth', 2);               % Initial flux surface
+h3 = plot(ax, NaN, NaN, 'k-', 'LineWidth', 2);                % Outermost flux surface
+h4 = plot(ax, NaN, NaN, 'k.', 'MarkerSize', 15);             % Magnetic axis (black dot)
 
-% 完整图例
+% Full Legend
 legend(ax, [h1,h2,h3,h4], ...
     'Particle trajectory', ...
     'Initial flux surface', ...
@@ -393,23 +393,23 @@ elseif iplot == 3
 
 
     run trapped_region.m
-    h3 = fill(x_fill, y_fill, [1,1,0]);  % 黄色
+    h3 = fill(x_fill, y_fill, [1,1,0]);  % Yellow
     set(h3,'facealpha',0.0,'edgecolor','none');
 
     run copass_region1.m
-    h4 = fill(x_fill, y_fill, [0,1,0]);  % 黄色
+    h4 = fill(x_fill, y_fill, [0,1,0]);  % Yellow
     set(h4,'facealpha',0.0,'edgecolor','none');
 
     run copass_region2.m
-    h5 = fill(x_fill, y_fill, [0,1,0]);  % 黄色
+    h5 = fill(x_fill, y_fill, [0,1,0]);  % Yellow
     set(h5,'facealpha',0.0,'edgecolor','none');
 
     run potato_region.m
-    h6 = fill(x_fill, y_fill, [0,0,1]);  % 黄色
+    h6 = fill(x_fill, y_fill, [0,0,1]);  % Yellow
     set(h6,'facealpha',0.0,'edgecolor','none');
 
     run stagnation_region.m
-    h7 = fill(x_fill, y_fill, [0,1,1]);  % 黄色
+    h7 = fill(x_fill, y_fill, [0,1,1]);  % Yellow
     set(h7,'facealpha',0.0,'edgecolor','none');
 
     
