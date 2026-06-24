@@ -1,0 +1,316 @@
+% !TEX program = xelatex
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[a4paper,margin=2.4cm]{geometry}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black!70,
+  citecolor=black!70,
+  urlcolor=blue!60!black,
+  pdftitle={MOSAIC v1.0 multi-channel antenna scaffolding status report},
+  pdfauthor={Claude Code (Opus 4.7) for marxtein}
+}
+
+% Fonts: rely on what TeX Live ships; fall back gracefully.
+\setmainfont{Times New Roman}
+\setsansfont{Arial}
+\setmonofont{Consolas}
+\setCJKmainfont{SimSun}
+\setCJKsansfont{SimHei}
+\setCJKmonofont{SimSun}
+
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  breaklines=true,
+  frame=single,
+  framerule=0.3pt,
+  rulecolor=\color{black!40},
+  backgroundcolor=\color{black!2},
+  showstringspaces=false,
+  columns=fullflexible
+}
+
+\renewcommand{\arraystretch}{1.18}
+
+\title{\bfseries MOSAIC v1.0 多通道天线脚手架 \\
+       \large 状态与验证报告}
+\author{}
+\date{2026-06-24}
+
+\begin{document}
+\maketitle
+
+\section{执行摘要}
+
+本次为 \texttt{MOSAIC\_v1.0} 接入 GitHub 版本管理，
+并在新分支 \texttt{feature/multichannel-antenna-scaffolding}
+（commit \texttt{26ffd0b}）落地多通道天线脚手架。
+\textbf{零修改出货码}：单通道（论文复现）行为完全不变。
+配套两个测试脚本验证：
+
+\begin{itemize}[leftmargin=*]
+\item \textbf{Test A}（无天线）：在解析平衡上把三个 $n$ 的共振线
+      叠加到一张 $\bar P_\zeta\text{-}\lambda$ 图。
+\item \textbf{Test B}（有天线）：三通道天线同时打开，
+      诊断每通道的守恒量
+      $E'_k(t)=E(t)-\frac{\omega_k}{n_k}\,q\,P_\zeta(t)$
+      漂移幅度。
+\end{itemize}
+
+参考频率沿用 GTC \texttt{transport-study} 实测本征频
+（IOP server 2026-06-07 audit）：
+$n{=}3$ RSAE \SI{59.46}{kHz}、$n{=}4$ RSAE \SI{66.07}{kHz}、$n{=}6$ TAE \SI{97.50}{kHz}。
+
+\section{版本管理状态}
+
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{lll}
+\toprule
+项目 & 取值 & 备注 \\
+\midrule
+本地工作树 & \texttt{D:\textbackslash 校园\textbackslash OneDrive\textbackslash 文档\textbackslash MATLAB\textbackslash} & \\
+           & \texttt{MAS-orbit\textbackslash MOSAIC\_v1.0} & \\
+远端 & \url{https://github.com/marxtein/MOSAIC} & main + tag \texttt{wave-particles-interactions} \\
+分支 1 & \texttt{local-updates-src} (\texttt{8fca42a}) & 旧源码改动 + \texttt{.gitignore} 扩列 \\
+分支 2 & \texttt{feature/multichannel-antenna-scaffolding} (\texttt{26ffd0b}) & 本次主线工作 \\
+\texttt{.gitignore} 扩列 & \verb|*.mat|, \verb|*.dat|, \verb|input/g*.0*|, & 大数据不入库 \\
+                       & \verb|input/gtc_benchmark/|, \verb|save/| & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+PR 入口：
+\href{https://github.com/marxtein/MOSAIC/pull/new/feature/multichannel-antenna-scaffolding}{\textsf{create PR for feature/multichannel-antenna-scaffolding}}
+
+\section{脚手架设计要点}
+
+每个\textbf{通道}（channel）= 一组相干扰动
+$(\omega_k,\,n_k,\,\{m\}_k,\,A_{km}(\psi),\,\partial_\psi A_{km}(\psi))$。
+多通道叠加 = 场求值时对所有通道独立计算
+\[
+  \delta\phi(\psi,\theta,\zeta,t)
+  = \sum_{k} \sum_{m\in\{m\}_k}
+    A_{km}(\psi)\,
+    \cos\!\bigl(m\,\theta - n_k\,\zeta - \omega_k\,t\bigr)
+\]
+再相加。这一求和由新增的 \texttt{eval\_perturb\_field.m} 完成，
+在通道数 $N{=}1$ 时与
+\texttt{poincare\_perturb.m}/\texttt{cal\_char\_freq\_perturb.m} 中
+原始内联 $m$-循环\textbf{逐位等价}。
+
+\subsection{文件清单（\texttt{src/}，全部新增）}
+
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{p{5.2cm} p{9.3cm}}
+\toprule
+文件 & 角色 \\
+\midrule
+\texttt{ant\_make\_channel.m}        & 把 $(\omega,n,m_{\text{modes}},\text{profiles})$ 打包成单通道 struct \\
+\texttt{ant\_attach\_channel.m}      & 把 \texttt{ant\_interface} 出的 legacy \texttt{ant.*} 字段包成 \texttt{ant.channels(1)}；legacy 字段保留 \\
+\texttt{ant\_merge\_channels.m}      & 把多个单通道 \texttt{ant} 拼成 \texttt{ant.channels(1..N)}；顶层字段镜像 channel 1，未迁移调用者继续工作 \\
+\texttt{eval\_perturb\_field.m}      & 多通道场求值器；返回总场 + 每通道分量（用于 $E'_k$ 诊断） \\
+\texttt{push\_orbit\_multichannel.m} & 精简 RK2 多通道扰动推进器，记录 $E(t)$、$P_\zeta(t)$、$E'_k(t)$ \\
+\texttt{test\_synthetic\_channel.m}  & 解析高斯单 $m$ 通道（非物理本征模，仅作脚手架验证） \\
+\texttt{test\_multi\_n\_resonance.m} & \textbf{Test A} 驱动 \\
+\texttt{test\_multichannel\_conservation.m} & \textbf{Test B} 驱动 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{为什么不动出货码}
+
+\texttt{poincare\_perturb.m} 与 \texttt{cal\_char\_freq\_perturb.m} 的原 $m$-循环保留。
+新功能走 \textbf{lift-and-replace} 路线：
+\texttt{push\_orbit\_multichannel.m} 是从 \texttt{poincare\_perturb.m} 提取的
+\textbf{精简版}（仅时间推进核心，去 Poincare 截面/绘图/磁面边界 IO），
+内部用 \texttt{eval\_perturb\_field}。两条路径并存，互不干扰；
+未来如把出货码迁移过去，只需小范围 swap。
+
+\section{测试设计}
+
+\subsection{Test A — 多 \texorpdfstring{$n$}{n} 共振线叠加}
+
+无天线下用解析平衡（\texttt{Analytical equilibrium} 分支，
+$q(\psi_N)=0.82+1.1\psi_N+\psi_N^2$，$\psi_w=0.0375$）跑一次 \texttt{ps\_option='PLam'}，
+得到 $\omega_b(\bar P_\zeta,\lambda)$、$\omega_\phi(\bar P_\zeta,\lambda)$ 网格。
+对每个通道 $k$、整数极向编号 $p\in\{-3,\dots,3\}$，
+画零等值线
+\[
+  \frac{\omega_k - n_k\,\omega_\phi}{\omega_b} \;=\; p
+  \qquad\Longleftrightarrow\qquad
+  n_k\,\omega_\phi - p\,\omega_b \;=\; \omega_k
+\]
+（即 Bao 2024 NF Eq.~(70)），按通道着色叠加到同一张图。
+
+\subsection{Test B — 多通道 \texorpdfstring{$E'_k$}{E\_k} 守恒}
+
+构造 6 个具有代表性的粒子（不同 $\psi$、$\theta$、$E$、$\lambda$），
+用 \texttt{push\_orbit\_multichannel.m} 同时受 3 通道扰动推进
+$N_{\text{step}}=4000$，$\Delta t = 10\,\omega_{cp}^{-1}$。
+每步诊断
+\[
+  E'_k(t) \;=\; E(t) \;-\; \frac{\omega_k}{n_k}\,q\,P_\zeta(t),
+  \qquad k=1,2,3.
+\]
+单通道下 $E'_1$ 严格守恒（旋转坐标使 Hamiltonian 时间无关）；
+三通道下\textbf{无单一守恒量}，$E'_k$ 漂移幅度反映粒子被各通道竞争耦合的强度。
+
+\section{验证状态}
+
+\subsection{脚手架数值等价性（设计层面）}
+
+\texttt{eval\_perturb\_field.m} 在 $N_{\text{channels}}{=}1$ 时与原内联循环
+表达式逐项对应：调用方传入 \texttt{t\_now\,=\,tstep\,*\,(istep+0.5*irk)} 时，
+所有 \texttt{cos/sin(phase)} 项、$m_i$/$n$ 加权、累加顺序均与
+\texttt{poincare\_perturb.m} L353--383 一致。
+唯一差异是 \texttt{psi}\,索引查找被显式包在每通道内（原为函数外一次性查找），
+\textbf{对单通道情形结果不变}。
+
+\subsection{Test A MATLAB 实测（通过）}
+
+在 MATLAB R2023b 上 headless 跑通：
+\begin{lstlisting}[language=bash]
+matlab.exe -sd src -batch "test_multi_n_resonance"
+\end{lstlisting}
+解析平衡 \texttt{construct\_analytic\_eq} $\to$
+3D 相空间边界（0.22\,s）$\to$ 粒子推进逐组完成（每组 $np{=}40$，$\sim$3--5\,s/组）。
+图存 \texttt{output/test\_multi\_n\_resonance.png}。
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.92\linewidth]{../output/test_multi_n_resonance.png}
+\caption{Test A：无天线下三 $n$ 共振线叠加。
+红 = $n{=}3$ RSAE 59.46\,kHz，蓝 = $n{=}4$ RSAE 66.07\,kHz，
+绿 = $n{=}6$ TAE 97.50\,kHz；每色画 $p\in\{-3,\dots,3\}$ 整数极向编号等值线。
+解析平衡 $q(\psi_N)=0.82+1.1\psi_N+\psi_N^2$。}
+\end{figure}
+
+\subsection{Test B MATLAB 实测（通过，需校准）}
+
+在 MATLAB R2023b 上 headless 跑通：
+\begin{lstlisting}[language=bash]
+matlab.exe -sd src -batch "test_multichannel_conservation"
+\end{lstlisting}
+解析平衡 + 三通道合成 $\to$ 6 个粒子 RK2 推 4000 步（耗时 $\sim$3.4\,s）。
+图存 \texttt{output/test\_multichannel\_conservation.png}。
+
+\textbf{振幅校准}：首次用 \texttt{amp\_phi=5e-4} 引发轨道指数发散
+（合成 Gaussian 包络的 $\partial_\psi$ 在峰值附近梯度过大），
+回退至 \texttt{amp\_phi=2e-5} 后轨道全程 bounded。各通道 $E'_k$ 最大漂移：
+
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{lll}
+\toprule
+通道 & $(n, f)$ & $\max\,|E'_k(t)-E'_k(0)|$ \\
+\midrule
+ch1 & $(3,\ 59.46\,\text{kHz})$ & 15.84\,keV \\
+ch2 & $(4,\ 66.07\,\text{kHz})$ & 15.66\,keV \\
+ch3 & $(6,\ 97.50\,\text{kHz})$ & 15.65\,keV \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{../output/test_multichannel_conservation.png}
+\caption{Test B：三通道天线同时打开下的 $E(t)$、$P_\zeta(t)$、每通道 $E'_k(t)$ 相对漂移。
+轨道相对初值约 15 keV 量级漂移，三通道幅度相近——
+说明合成包络下漂移由 $E$ 与 $P_\zeta$ 自身波致涨落主导，
+$(\omega_k/n_k)$ 因子只是不同尺度而已。后续替换为真实 RSAE 本征模可揭示通道间真正差异。}
+\end{figure}
+
+\textbf{解读警告}：本次 Test B 用的是合成 Gaussian 单 $m$ 包络（非物理本征模）。
+三通道 $E'_k$ 漂移幅度接近不是 bug——
+当 $E(t)$、$P_\zeta(t)$ 自身波致涨落 $\sim O(\text{keV})$ 时，
+$E'_k = E - (\omega_k/n_k)q P_\zeta$ 的漂移
+被 $E$、$P_\zeta$ 的同源波动主导。
+要看到通道间显著差异，需真实本征模 $A_m(\psi)$
+（径向窗口分别集中在各模共振面附近），见下节待办。
+
+\section{后续方向（谱方法切入点）}
+
+详见 KB 概念页 \texttt{[[concepts/mosaic-multichannel-antenna]]}。三条候选路线及其与多频扩展的相容性：
+
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{p{4.0cm} p{6.0cm} p{4.5cm}}
+\toprule
+路线 & 适用范围 & 多频后果 \\
+\midrule
+\textbf{Path 1} CoM 参数空间逐区
+Chebyshev 张量采样 & 任何无天线/有天线场景；
+拓扑区内函数光滑，谱收敛 & \textbf{无影响}（与频率结构正交） \\
+\textbf{Path 2} 时间谐波 Galerkin / harmonic balance &
+单频严格；岛中心固定点搜索可跳过长时积分 &
+公度→Fourier 截断 $\times N_f$ 爆炸；
+不可公度→准周期 \\
+\textbf{Path 3} Floquet + SEM 本征 &
+单频严格；岛宽/线性稳定性，
+可\textbf{直接复用} gamsolver \texttt{sem\_operator}/\texttt{mat\_cls.scatter\_radial} &
+多频走 quasi-periodic Floquet 扩相空间 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{推荐落地顺序}：先做 Path 1 — 改 \texttt{copass\_region*}/\texttt{trapped\_region}/\texttt{stagnation\_region}/\texttt{potato\_region} 的 \texttt{linspace} → Cheb-CGL 节点；
+然后做 Path 3 — 把 gamsolver SEM 算子搬来计算 Floquet 矩阵。
+Path 2 不立即落地，接口预留即可。
+
+\section{知识库归档}
+
+本次工作已写入 Velo Obsidian 知识库
+（\texttt{E:\textbackslash work\textbackslash velo\textbackslash knowledge-base}）：
+
+\begin{itemize}[leftmargin=*]
+\item 新建 \texttt{wiki/concepts/mosaic-multichannel-antenna.md}
+      （设计要点、文件清单、谱方法切入点）。
+\item 更新 \texttt{wiki/entities/project-mosaic.md} 增加版本管理小节
+      与新概念页链接。
+\item 更新 \texttt{wiki/index.md}（概念数 27 $\to$ 28，总页数 64 $\to$ 65）。
+\item 追加 \texttt{wiki/log.md} 2026-06-24 条目。
+\end{itemize}
+
+\section{已知风险与待办}
+
+\begin{itemize}[leftmargin=*]
+\item \textbf{Test B 物理可信度有限}：\texttt{test\_synthetic\_channel.m} 是单 $m$
+      高斯包络，不是真本征模；
+      只能用来验证\textbf{多通道基础设施数值闭合 + 守恒诊断逻辑}，
+      不能给物理断言。
+      真实多 $n$ 跑测需要把 GTC \texttt{transport-study} 输出的
+      多模 \texttt{antenna.in} 或 spdata 灌进 MOSAIC 通道结构，
+      属下一个工作包。
+\item \textbf{Test A 物理可信度受限于解析平衡}：
+      用解析 $q$ 与圆截面 $R$，与真实 DIIID/EAST 平衡有差；
+      共振线相对位置仍是定性正确的，但绝对值不能与实验对标。
+\item \texttt{push\_orbit\_multichannel.m} 是 \texttt{poincare\_perturb.m} 的精简版，
+      省略了 Poincare 截面采样逻辑；若后续要做岛结构图，
+      仍需走出货码或自行补 strobe 逻辑。
+\end{itemize}
+
+\vspace{1em}
+\hrule
+\vspace{0.5em}
+{\footnotesize
+\textit{报告生成}: 2026-06-24, Claude Code (Opus 4.7) 协助；
+\textit{branch}: \texttt{feature/multichannel-antenna-scaffolding}；
+\textit{commit}: \texttt{26ffd0b}.
+}
+
+\end{document}

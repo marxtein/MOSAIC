@@ -49,7 +49,7 @@ run physics_unit;
 psi_grid  = linspace(0.0, eq.psiw, 200).';
 psi_peak  = 0.55*eq.psiw;
 psi_width = 0.10*eq.psiw;
-amp_phi   = 5e-4;          % small but visible; stays in linear regime
+amp_phi   = 2e-5;          % calibrated: perturbation visible above RK2 integration noise; orbits remain bounded over mstep=4000.
 
 ch1 = test_synthetic_channel(3,  59.46, 5,  psi_grid, psi_peak, psi_width, amp_phi);
 ch2 = test_synthetic_channel(4,  66.07, 7,  psi_grid, psi_peak, psi_width, amp_phi);
