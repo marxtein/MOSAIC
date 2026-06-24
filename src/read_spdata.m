@@ -1,4 +1,4 @@
-﻿% This file is part of MOSAIC version 1.0
+% This file is part of MOSAIC version 1.0
 % MOSAIC is released under the GNU General Public License v3.0 (GPLv3):
 %
 % Copyright (c) 2026 Jian Bao (jbao@iphy.ac.cn)
@@ -177,21 +177,21 @@ fclose(fid);
 [C,h]=contourf(squeeze(A.xsp(1,:,:)),squeeze(A.zsp(1,:,:)),squeeze(A.bsp(1,:,:)),100);
 set(h,'linecolor','none');
 hold on;
-step = 4;      % Sparsity
+step = 4;      % 稀疏度
 lw = 0.4; 
 x = squeeze(A.xsp(1,:,:));
 z = squeeze(A.zsp(1,:,:));
 
-% [Correct drawing method]Draw grid lines only, no breaks, auto-closing, most stable
-hMesh =plot(x(1:step-1:end,:)', z(1:step-1:end,:)', 'k-', 'LineWidth', lw); hold on  % Horizontal lines
-plot(x(:,1:step:end),  z(:,1:step:end),  'k-', 'LineWidth', lw);   % Vertical lines
+% 【正确画法】只画网格线，不断线、自动闭合、最稳定
+hMesh =plot(x(1:step-1:end,:)', z(1:step-1:end,:)', 'k-', 'LineWidth', lw); hold on  % 横线
+plot(x(:,1:step:end),  z(:,1:step:end),  'k-', 'LineWidth', lw);   % 竖线
 %plot(squeeze(A.xsp(1,:,:)),squeeze(A.zsp(1,:,:)),'k.-');
 %hold on;
 %plot(squeeze(A.xsp(1,:,:))',squeeze(A.zsp(1,:,:))','k.-');
 colorbar;
 colorbar;
 cb = colorbar;
-% Add label to colorbar: B0/Ba
+% 给色条加标签，就是B0/Ba
 cb.Label.String = '$B_0$(T)';
 cb.Label.Interpreter = 'latex';
 cb.Label.FontSize = 20;
@@ -201,8 +201,8 @@ daspect([1 1 1]);
 xlabel('$X$/m','fontsize',25,'Interpreter','latex');
 ylabel('$Z$/m','fontsize',25,'Interpreter','latex');
 
-% ===================== [Correct legend, guaranteed no errors] =====================
-% Draw grid legend only; colorbar itself represents B0/Ba
+% ===================== 【正确图例，绝对不报错】 =====================
+% 只画网格图例，colorbar 本身就代表 B0/Ba
 legend(hMesh, 'Mesh Grid', ...
     'Interpreter','latex','Location','best','FontSize',23);
 saveas(gca,'../output/B_mesh','epsc');

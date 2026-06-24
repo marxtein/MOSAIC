@@ -1,4 +1,4 @@
-﻿% This file is part of MOSAIC version 1.0
+% This file is part of MOSAIC version 1.0
 % MOSAIC is released under the GNU General Public License v3.0 (GPLv3):
 %
 % Copyright (c) 2026 Jian Bao (jbao@iphy.ac.cn)
@@ -42,12 +42,12 @@ emax_inv=0.25;egrids=101;%change
 lam_inv=0.75;lambdagrids=100;%change
 Pzeta_inv=0.65;Pzetagrids=100;%change
 mub_inv=0.25;mubgrids=100;
-% Set figure properties
-meshi0=1.86317834;%1.2998%1.86317834;%gtc.out first meshi
-meshf0=23.3529551;%23.786174%17.2%23.786174%23.3529551;%20.783799%23.3529551;%gtc.out first meshf
+% 设置图形属性
+meshi0=1.86317834;%1.2998%1.86317834;%gtc.out中第一个meshi
+meshf0=23.3529551;%23.786174%17.2%23.786174%23.3529551;%20.783799%23.3529551;%gtc.out中第一个meshf,需要修改setup才能输出
 
 
-%%Main plotting
+%%正式画图
 Pzeta=(Pzeta_in +1)*(((draw_i == 1) +(draw_i == 3))*Pzeta_inv*Pzetagrids);
 Pzetagrid=ceil(Pzeta);
 
@@ -70,8 +70,8 @@ switch iplot
         %Bplot=(draw_i == 1)*data3di
         z(:,:)=sum(Bplot(tstep,Egrid-2:Egrid+2,ii,:,:),2);
 
-        thre = max(max(abs(z)))/60; % Set a threshold, e.g. 0.1, to determine which values should be ignored
-        z(abs(z) < thre) = NaN; % Set values close to 0 to NaN
+        thre = max(max(abs(z)))/60; % 设置一个阈值，比如 0.1，用于确定哪些值应该被忽略
+        z(abs(z) < thre) = NaN; % 将接近 0 的值设置为 NaN
         [C, h] = contourf(x, y,z, 100);hold on;colormap('jet');set(h, 'linecolor', 'none');
         cb=colorbar('northoutside');
         cb.FontSize = 15;
@@ -91,8 +91,8 @@ switch iplot
          Bplot=((draw_i == 1)*Data3d.data3di +(draw_i == 3)*Data3d.data3df);
         z(:,:)=Bplot(tstep,:,ii,Lambdagrid,:);
 
-        thre = max(max(abs(z)))/100; % Set a threshold, e.g. 0.1, to determine which values should be ignored  
-        z(abs(z) < thre) = NaN; % Set values close to 0 to NaN  
+        thre = max(max(abs(z)))/100; % 设置一个阈值，比如 0.1，用于确定哪些值应该被忽略  
+        z(abs(z) < thre) = NaN; % 将接近 0 的值设置为 NaN  
      
         [C, h] = contourf(x, y,z, 100);hold on;colormap('jet');set(h, 'linecolor', 'none');
         cb=colorbar('northoutside');
@@ -110,8 +110,8 @@ switch iplot
         y=Eaxis;
         Bplot=((draw_i == 1)*Data3d.data3di +(draw_i == 3)*Data3d.data3df);
         z(:,:)=Bplot(tstep,:,ii,mubgrid,:);
-        thre = max(max(abs(z)))/25; % Set a threshold, e.g. 0.1, to determine which values should be ignored  
-        z(abs(z) < thre) = NaN; % Set values close to 0 to NaN 
+        thre = max(max(abs(z)))/25; % 设置一个阈值，比如 0.1，用于确定哪些值应该被忽略  
+        z(abs(z) < thre) = NaN; % 将接近 0 的值设置为 NaN 
      
         
         
@@ -138,8 +138,8 @@ switch iplot
         y=lambdaaxis1;
         Bplot=((draw_i == 1)*Data3d.data3di +(draw_i == 3)*Data3d.data3df);
         z(:,:)=Bplot(tstep,:,ii,mubgrid,:);
-thre = max(max(abs(z)))/50; % Set a threshold, e.g. 0.1, to determine which values should be ignored  
-        z(abs(z) < thre) = NaN; % Set values close to 0 to NaN  
+thre = max(max(abs(z)))/50; % 设置一个阈值，比如 0.1，用于确定哪些值应该被忽略  
+        z(abs(z) < thre) = NaN; % 将接近 0 的值设置为 NaN  
         [C, h] = contourf(x, y,z, 100);hold on;colormap('jet');set(h, 'linecolor', 'none');
         cb=colorbar('northoutside');
         cb.FontSize = 15;

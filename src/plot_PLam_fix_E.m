@@ -1,4 +1,4 @@
-﻿% This file is part of MOSAIC version 1.0
+% This file is part of MOSAIC version 1.0
 % MOSAIC is released under the GNU General Public License v3.0 (GPLv3):
 %
 % Copyright (c) 2026 Jian Bao (jbao@iphy.ac.cn)
@@ -63,7 +63,7 @@ if iplot == 1
     ylabel('\lambda');
 
 elseif iplot == 2
-    colors = {'parula','jet','hot','turbo'}; % Different colormaps
+    colors = {'parula','jet','hot','turbo'}; % 不同 colormap
     fields = {'omega_b','omega_d','omega_phi','q_avrg'};
     figure('name','region',...
         'unit','normalized',...
@@ -112,7 +112,7 @@ elseif iplot == 2
     plot(PLam_2D.Pzeta(5,:),PLam_2D.lambda(5,:),'m','linewidth',2);hold on;
     plot(PLam_2D.Pzeta(6,:),PLam_2D.lambda(6,:),'k:','linewidth',2);hold on;
     plot(PLam_2D.Pzeta_bound_right,PLam_2D.lam_uni_grid,'c-.','linewidth',2);hold on;
-    %q=3 contour
+    %q=3等值线
     [C,h] =contour(char_freq.Pzeta_norm, char_freq.lambda, ...
         char_freq.(fields{4}), [0 -3], 'LineWidth', 2, 'Color','k');
     h.LineStyle = '--';
@@ -124,7 +124,7 @@ elseif iplot == 2
     strings = ['E = ',num2str(PLam_2D.energy_out),'keV'];
     annotation('textbox',[0.64 0.79 0.9 0.03],'String',strings,'fontsize',25,'edgecolor','none')
 
-    %---------------------------------------------------------------------------------------------Legend
+    %---------------------------------------------------------------------------------------------图例
     if strcmp(passing_option,'counter-passing')
         posx = min(xlim) + 0.05*range(xlim);
         posy = min(ylim) + 0.77*range(ylim);
@@ -138,7 +138,7 @@ elseif iplot == 2
     fill([posx posx+w posx+w posx],[posy-h/2 posy-h/2 posy+h posy+h],'w',...
         'EdgeColor','k','LineWidth',1.0);
 
-    % Small elliptical gradient
+    % 小椭圆渐变
     x0 = posx + 0.08*range(xlim);
     y0 = posy + 0.15*range(ylim);
     a = 0.03 * range(xlim);
@@ -152,7 +152,7 @@ elseif iplot == 2
     end
     plot(x0 + a*cos(theta), y0 + b*sin(theta), 'k', 'LineWidth', 1.2);
 
-    % Legend text
+    % 图例文字
     text(x0 + 0.06*range(xlim), y0, '\it{l}', ...
         'FontSize',23,'FontName','Times New Roman', ...
         'FontWeight','bold','Interpreter','tex', ...
@@ -183,13 +183,13 @@ elseif iplot==3
 %         'DefaultAxesTickLength',[0.02,0.015]);
     titles = {'$\omega_\theta$','$\omega_d$','$\omega_\zeta$','$\langle q \rangle$'};
     fields = {'omega_b','omega_d','omega_phi','q_avrg'};
-    colors = {'parula','jet','hot','turbo'}; % Different colormaps
+    colors = {'parula','jet','hot','turbo'}; % 不同 colormap
     n = numel(fields);
 
     for i = 1:n
         subplot(1,n,i)
         omega_va=4.3889e+06/sqrt(2);
-        % ===== Main plot =====
+        % ===== 主图绘制 =====
         if i==4
             contourf(char_freq.Pzeta_norm, char_freq.lambda, ...
                 -char_freq.(fields{i}), 30, 'LineColor','none');hold on
@@ -222,7 +222,7 @@ elseif iplot==3
         ylabel('$\lambda$','FontSize',15,'Interpreter','latex');
         %title(titles{i},'Interpreter','tex','FontSize',14);
 
-        % Upper colorbar
+        % 上方 colorbar
         cb = colorbar('northoutside');
         %cb.Label.String = titles{i};
         cb.FontSize = 10;
@@ -230,7 +230,7 @@ elseif iplot==3
 cb.FontWeight = 'bold';          
 cb.LineWidth = 1; 
         hold on;
-        % Trajectory line
+        % 轨迹线
         plot(PLam_2D.Pzeta(1,:),PLam_2D.lambda(1,:),'b','linewidth',2);hold on;
         plot(PLam_2D.Pzeta(2,:),PLam_2D.lambda(2,:),'g','linewidth',2);hold on;
         plot(PLam_2D.Pzeta(3,:),PLam_2D.lambda(3,:),'r','linewidth',2);hold on;
@@ -248,17 +248,17 @@ cb.LineWidth = 1;
             xlim([-1,0.537]);
         end
 
-        % q=3  contour
+        % q=3 等值线
         if i <= 4
             [C,h] =contour(char_freq.Pzeta_norm, char_freq.lambda, ...
                 char_freq.(fields{4}), [0 -3], 'LineWidth', 1.5, 'Color','k');
             h.LineStyle = '--';
         end
 
-        % ====== Add small elliptical gradient legend ======
-        % ===== Legend box =====
-        % White background rectangle
-        %---------------------------------------------------------------------------------------------Legend
+        % ====== 添加椭圆渐变色小图例 ======
+        % ===== 图例框部分 =====
+        % 白底矩形框
+        %---------------------------------------------------------------------------------------------图例
         if i<= 3
             %posx = min(xlim) + 0.05*range(xlim);
             %posy = min(ylim) + 0.07*range(ylim);
@@ -267,7 +267,7 @@ cb.LineWidth = 1;
             fill([posx posx+w posx+w posx],[posy-h/2 posy-h/2 posy+h posy+h],'w',...
                 'EdgeColor','k','LineWidth',1.0);
 
-            % Small elliptical gradient
+            % 小椭圆渐变
             x0 = posx + 0.06*range(xlim);
             y0 = posy + 0.07*range(ylim);
             a = 0.04 * range(xlim);
@@ -281,7 +281,7 @@ cb.LineWidth = 1;
             end
             plot(x0 + a*cos(theta), y0 + b*sin(theta), 'k', 'LineWidth', 1.2);
 
-            % Legend text
+            % 图例文字
             text(x0 + 0.06*range(xlim), y0, ['  ' titles{i} '{(rad/s)}'], ...
                 'FontSize',13,'FontName','Times New Roman', ...
                 'FontWeight','normal','Interpreter','latex', ...
@@ -298,7 +298,7 @@ cb.LineWidth = 1;
             fill([posx posx+w posx+w posx],[posy-h/2 posy-h/2 posy+h posy+h],'w',...
                 'EdgeColor','k','LineWidth',1.0);
 
-            % Small elliptical gradient
+            % 小椭圆渐变
             x0 = posx + 0.06*range(xlim);
             y0 = posy + 0.07*range(ylim);
             a = 0.04 * range(xlim);
@@ -312,7 +312,7 @@ cb.LineWidth = 1;
             end
             plot(x0 + a*cos(theta), y0 + b*sin(theta), 'k', 'LineWidth', 1.2);
 
-            % Legend text
+            % 图例文字
             text(x0 + 0.05*range(xlim), y0, [titles{i}], ...
                 'FontSize',13,'FontName','Times New Roman', ...
                 'FontWeight','normal','Interpreter','latex', ...
@@ -322,7 +322,7 @@ cb.LineWidth = 1;
                 'FontWeight','normal','Interpreter','latex', ...
                 'HorizontalAlignment','left','VerticalAlignment','middle');
         end
-        %---------------------------------------------------------------------------------------------Legend
+        %---------------------------------------------------------------------------------------------图例
     end
     if strcmp(passing_option,'counter-passing')
         saveas(gca,'../output/pzeta_lambda_freq_counter','epsc');

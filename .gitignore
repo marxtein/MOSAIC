@@ -1,0 +1,15 @@
+*.eps
+*.pdf
+*.bash
+output
+*.aux
+*.log
+*.gz
+*.out
+spdata*
+profile*
+*.mat
+*.dat
+input/g*.0*
+input/gtc_benchmark/
+save/

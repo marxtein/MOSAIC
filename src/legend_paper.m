@@ -1,4 +1,4 @@
-﻿% This file is part of MOSAIC version 1.0
+% This file is part of MOSAIC version 1.0
 % MOSAIC is released under the GNU General Public License v3.0 (GPLv3):
 %
 % Copyright (c) 2026 Jian Bao (jbao@iphy.ac.cn)
@@ -17,7 +17,7 @@
 % You should have received a copy of the GNU General Public License
 % along with this program.  If not, see <https://www.gnu.org/licenses/>.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%---------------------------------------------------------------------------------------------Legend
+%---------------------------------------------------------------------------------------------图例
 if strcmp(ps_option,'MG')
     posx = min(xlim) + 0.03*range(xlim);
     posy = min(ylim) + 0.79*range(ylim);

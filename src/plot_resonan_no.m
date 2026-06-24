@@ -1,4 +1,4 @@
-﻿% This file is part of MOSAIC version 1.0
+% This file is part of MOSAIC version 1.0
 % MOSAIC is released under the GNU General Public License v3.0 (GPLv3):
 %
 % Copyright (c) 2026 Jian Bao (jbao@iphy.ac.cn)
@@ -17,22 +17,22 @@
 % You should have received a copy of the GNU General Public License
 % along with this program.  If not, see <https://www.gnu.org/licenses/>.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Start point (x0, y0)
+% 起点 (x0, y0)
 x0 = 0;
 y0 = 30;
 
-% Slope m
+% 斜率 m
 m = 25.5556;
 
-% Define line range
+% 定义线的范围
 x = linspace(-0.1, 0.2,100);
 y = y0 + m * (x - x0);
 
-% Draw line
+% 绘制线
 plot(x, y, 'b-', 'LineWidth', 2);
 hold on;
 
-% Add number beside the line
+% 在线旁边添加序号
 text(x(end)+0.08, y(end), '(1)', 'FontSize', 20, 'Color', 'b', ...
      'HorizontalAlignment', 'left', 'VerticalAlignment', 'bottom');
 
@@ -40,18 +40,18 @@ text(x(end)+0.08, y(end), '(1)', 'FontSize', 20, 'Color', 'b', ...
 x0 = 0;
 y0 = 45.09;
 
-% Slope m
+% 斜率 m
 m = 25.5556;
 
-% Define line range
+% 定义线的范围
 x = linspace(0.1, 0.4,100);
 y = y0 + m * (x - x0);
 
-% Draw line
+% 绘制线
 plot(x, y, 'b-', 'LineWidth', 2);
 hold on;
 
-% Add number beside the line
+% 在线旁边添加序号
 text(x(end)+0.1, y(end), '(2)', 'FontSize', 20, 'Color', 'b', ...
      'HorizontalAlignment', 'left', 'VerticalAlignment', 'bottom');
 
@@ -59,36 +59,36 @@ text(x(end)+0.1, y(end), '(2)', 'FontSize', 20, 'Color', 'b', ...
 x0 = 0;
 y0 = 51.93;
 
-% Slope m
+% 斜率 m
 m = 25.5556;
 
-% Define line range
+% 定义线的范围
 x = linspace(0.1, 0.4,100);
 y = y0 + m * (x - x0);
 
-% Draw line
+% 绘制线
 plot(x, y, 'b-', 'LineWidth', 2);
 hold on;
 
-% Add number beside the line
+% 在线旁边添加序号
 text(x(end)+0.1, y(end), '(3)', 'FontSize', 20, 'Color', 'b', ...
      'HorizontalAlignment', 'left', 'VerticalAlignment', 'bottom');
 
 x0 = 0;
 y0 = 60.22;
 
-% Slope m
+% 斜率 m
 m = 25.5556;
 
-% Define line range
+% 定义线的范围
 x = linspace(0.1, 0.4,100);
 y = y0 + m * (x - x0);
 
-% Draw line
+% 绘制线
 plot(x, y, 'b-', 'LineWidth', 2);
 hold on;
 
-% Add number beside the line
+% 在线旁边添加序号
 text(x(end)+0.1, y(end), '(4)', 'FontSize', 20, 'Color', 'b', ...
      'HorizontalAlignment', 'left', 'VerticalAlignment', 'bottom');
 

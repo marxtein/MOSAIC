@@ -1,4 +1,4 @@
-﻿% This file is part of MOSAIC version 1.0
+% This file is part of MOSAIC version 1.0
 % MOSAIC is released under the GNU General Public License v3.0 (GPLv3):
 %
 % Copyright (c) 2026 Jian Bao (jbao@iphy.ac.cn)
@@ -32,7 +32,7 @@ E_input=E_tmp;
 pzeta_input=pzeta_tmp;
 lambda_input=lambda_tmp;
 
-t = tic;   % Start timer
+t = tic;   % 开始计时
 psi_in=eq.psi(end)*psi_in_norm;
 psi_out=eq.psi(end)*psi_out_norm;
 % amp_mod=1/20;
@@ -265,7 +265,7 @@ for m = 1:np-num_ones
     percent = floor(m / N * 100);
     last_percent=0;
     if percent >= last_percent 
-        %fprintf('Progress: %d%%\n', percent);
+        %fprintf('进度: %d%%\n', percent);
         last_percent = percent;
         str=['Processing...',num2str(percent),'%'];
         waitbar((m - 1)/(np-num_ones - 1),h,str);
@@ -606,5 +606,5 @@ end
 
 %end
 
-elapsed = toc(t);  % Stop timer and return elapsed time
-%fprintf('Run time:%.4f s\n', elapsed);
+elapsed = toc(t);  % 结束计时并返回耗时
+%fprintf('运行时间：%.4f 秒\n', elapsed);

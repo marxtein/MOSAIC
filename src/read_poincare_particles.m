@@ -1,4 +1,4 @@
-﻿% This file is part of MOSAIC version 1.0
+% This file is part of MOSAIC version 1.0
 % MOSAIC is released under the GNU General Public License v3.0 (GPLv3):
 %
 % Copyright (c) 2026 Jian Bao (jbao@iphy.ac.cn)
@@ -19,25 +19,25 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function P = read_poincare_particles(path, filename)
 % READ_POINCARE_PARTICLES
-% Read Poincare data, group by particle, and remove energy outliers
+% 读取poincare数据并按粒子分组，同时去除能量异常点
 %
-% Input:
-%   path     - Data path (string)
-%   filename - File name (e.g. 'poincare.txt')
+% 输入：
+%   path     - 数据路径（字符串）
+%   filename - 文件名（如 'poincare.txt'）
 %
-% Output:
-%   P        - Structure array grouped by particle (cleaned)
+% 输出：
+%   P        - 按粒子分组后的结构体数组（已清洗）
 
-    % === 1. Read parameters (preserve original logic) ===
+    % === 1. 读取参数（保持你原来的逻辑） ===
     %run(fullfile(path, 'read_para_w.m'));
 
-    % === 2. Concatenate path ===
+    % === 2. 拼接路径 ===
     path_full = fullfile(path);
 
-    % === 3. Read data ===
+    % === 3. 读取数据 ===
     data = readtable(fullfile(path_full, filename));
 
-    % === 4. Convert to struct ===
+    % === 4. 转为结构体 ===
     Poincare = struct( ...
         'psi', data.psi, ...
         'theta', data.theta, ...
@@ -52,7 +52,7 @@ function P = read_poincare_particles(path, filename)
         'E', data.E ...
     );
 
-    % === 5. Group by particle ===
+    % === 5. 按粒子分组 ===
     num_particles = max(Poincare.particle_ID);
     fields = fieldnames(Poincare);
 
@@ -66,7 +66,7 @@ function P = read_poincare_particles(path, filename)
         end
     end
 
-    % === 6. Remove bad points (energy anomalies)===
+    % === 6. 去除坏点（能量异常）===
     for i = 1:length(P)
 
         E = P(i).E;

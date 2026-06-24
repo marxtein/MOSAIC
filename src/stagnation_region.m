@@ -1,4 +1,4 @@
-﻿% This file is part of MOSAIC version 1.0
+% This file is part of MOSAIC version 1.0
 % MOSAIC is released under the GNU General Public License v3.0 (GPLv3):
 %
 % Copyright (c) 2026 Jian Bao (jbao@iphy.ac.cn)
@@ -17,13 +17,13 @@
 % You should have received a copy of the GNU General Public License
 % along with this program.  If not, see <https://www.gnu.org/licenses/>.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Three curves
+% 三条曲线
 xA = PLam_2D.Pzeta(5,:);   yA = PLam_2D.lambda(5,:);
 xB = PLam_2D.Pzeta(3,:);   yB = PLam_2D.lambda(3,:);
 xC = PLam_2D.Pzeta_bound_right;   yC = PLam_2D.lam_uni_grid;
 
-% Unified interpolation parameters
-N = 1000; % Interpolation density (higher = smoother)
+% 统一插值参数
+N = 1000; % 插值密度（越大越平滑）
 tA = linspace(0,1,length(xA));
 tB = linspace(0,1,length(xB));
 tC = linspace(0,1,length(xC));
@@ -39,7 +39,7 @@ yB_i = interp1(tB, yB, ti, 'pchip');
 xC_i = interp1(tC, xC, ti, 'pchip');
 yC_i = interp1(tC, yC, ti, 'pchip');
 
-% ---------- Automatically find intersection points between three curves ----------
+% ---------- 自动求三条曲线之间的交点 ----------
 [xAB, yAB] = polyxpoly(xA_i, yA_i, xB_i, yB_i);
 xAB =xA_i(end);
 yAB =yA_i(end);
@@ -53,7 +53,7 @@ yCA=PLam_2D.lam_uni_grid(end);
 findNearestIndex = @(xCurve,yCurve,xI,yI) ...
     find( (xCurve - xI).^2 + (yCurve - yI).^2 == ...
           min( (xCurve - xI).^2 + (yCurve - yI).^2 ), 1);
-% ---------- Find the indices of intersection points on each curve (for interval truncation) ----------
+% ---------- 找到交点在各曲线上的索引（用于截取区间） ----------
 % A ∩ B
 iAB_A = findNearestIndex(xA_i, yA_i, xAB, yAB);
 iAB_B = findNearestIndex(xB_i, yB_i, xAB, yAB);
@@ -66,21 +66,21 @@ iBC_C = findNearestIndex(xC_i, yC_i, xBC, yBC);
 iCA_C = findNearestIndex(xC_i, yC_i, xCA, yCA);
 iCA_A = findNearestIndex(xA_i, yA_i, xCA, yCA);
 
-% ---------- Stitch regions along closed direction (counterclockwise) ----------
+% ---------- 按闭合方向拼接区域（逆时针） ----------
 
-% Segment A: CA → AB
+% A 段：从 CA → AB
 xA_seg = xA_i(min(iCA_A,iAB_A):max(iCA_A,iAB_A));
 yA_seg = yA_i(min(iCA_A,iAB_A):max(iCA_A,iAB_A));
 
-% Segment B: AB → BC
+% B 段：从 AB → BC
 xB_seg = xB_i(min(iAB_B,iBC_B):max(iAB_B,iBC_B));
 yB_seg = yB_i(min(iAB_B,iBC_B):max(iAB_B,iBC_B));
 
-% Segment C: BC → CA
+% C 段：从 BC → CA
 xC_seg = xC_i(min(iBC_C,iCA_C):max(iBC_C,iCA_C));
 yC_seg = yC_i((min(iBC_C,iCA_C):max(iBC_C,iCA_C)));
 
-% ---------- Merge three parts into a closed region ----------
+% ---------- 合并三个部分形成闭合区域 ----------
 x_fill = [xA_seg, xB_seg, xC_seg];
 y_fill = [yA_seg, yB_seg, yC_seg];
 

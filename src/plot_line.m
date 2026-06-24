@@ -1,4 +1,4 @@
-﻿% This file is part of MOSAIC version 1.0
+% This file is part of MOSAIC version 1.0
 % MOSAIC is released under the GNU General Public License v3.0 (GPLv3):
 %
 % Copyright (c) 2026 Jian Bao (jbao@iphy.ac.cn)
@@ -88,7 +88,7 @@ cb.LineWidth = 1;
     [C,h21] =contour(char_freq.Pzeta_norm, char_freq.E,char_freq.q_avrg, [0 -3], 'LineWidth', 2, 'Color','k','linestyle','--');hold on
     axis([MG.pzeta_norm0 MG.pzeta_norm1 14 E_max]);
 
-    %---------------------------------------------------------------------------------------------Legend
+    %---------------------------------------------------------------------------------------------图例
     if strcmp(passing_option,'counter-passing')
         posx = min(xlim) + 0.57*range(xlim);
         posy = min(ylim) + 0.78*range(ylim);
@@ -102,7 +102,7 @@ cb.LineWidth = 1;
     fill([posx posx+w posx+w posx],[posy-h/2 posy-h/2 posy+h posy+h],'w',...
         'EdgeColor','k','LineWidth',1.0);
 
-    % Small elliptical gradient
+    % 小椭圆渐变
     x0 = posx + 0.08*range(xlim);
     y0 = posy + 0.14*range(ylim);
     a = 0.03 * range(xlim);
@@ -116,7 +116,7 @@ cb.LineWidth = 1;
     end
     plot(x0 + a*cos(theta), y0 + b*sin(theta), 'k', 'LineWidth', 1.2);
 
-    % Legend text
+    % 图例文字
     text(x0 + 0.056*range(xlim), y0, '$p$', ...
         'FontSize',23,'FontName','Times New Roman', ...
         'FontWeight','normal','Interpreter','latex', ...
@@ -202,7 +202,7 @@ cb.LineWidth = 1;
     %annotation('textbox',[0.2 0.28 0.9 0.03],'String',strings,'fontsize',30,'edgecolor','none')
     axis([GB.pzeta_norm0 GB.pzeta_norm1 0 max(GB.lambda_pzeta(1,:))]);
 
-    %---------------------------------------------------------------------------------------------Legend
+    %---------------------------------------------------------------------------------------------图例
     if strcmp(passing_option,'counter-passing')
         posx = min(xlim) + 0.57*range(xlim);
         posy = min(ylim) + 0.13*range(ylim);
@@ -258,7 +258,7 @@ cb.LineWidth = 1;
     end
 
 elseif iplot == 3
-     colors = {'jet','jet','hot','turbo'}; % Different colormaps
+     colors = {'jet','jet','hot','turbo'}; % 不同 colormap
     fields = {'omega_b','omega_d','omega_phi','q_avrg'};
     figure('name','region',...
         'unit','normalized',...
@@ -311,7 +311,7 @@ cb.LineWidth = 1;
     plot(PLam_2D.Pzeta(5,:),PLam_2D.lambda(5,:),'m','linewidth',2);hold on;
     %plot(PLam_2D.Pzeta(6,:),PLam_2D.lambda(6,:),'k:','linewidth',2);hold on;
     plot(PLam_2D.Pzeta_bound_right,PLam_2D.lam_uni_grid,'c-.','linewidth',2);hold on;
-    %q=3 contour
+    %q=3等值线
     [C,h] =contour(char_freq.Pzeta_norm, char_freq.lambda, ...
         char_freq.(fields{4}), [0 -3], 'LineWidth', 2, 'Color','k');
     h.LineStyle = '--';
@@ -323,7 +323,7 @@ cb.LineWidth = 1;
     %strings = ['E = ',num2str(PLam_2D.energy_out),'keV'];
     %annotation('textbox',[0.64 0.79 0.9 0.03],'String',strings,'fontsize',25,'edgecolor','none')
 
-    %---------------------------------------------------------------------------------------------Legend
+    %---------------------------------------------------------------------------------------------图例
     if strcmp(passing_option,'counter-passing')
         posx = min(xlim) + 0.03*range(xlim);
         posy = min(ylim) + 0.79*range(ylim);
@@ -337,7 +337,7 @@ cb.LineWidth = 1;
     fill([posx posx+w posx+w posx],[posy-h/2 posy-h/2 posy+h posy+h],'w',...
         'EdgeColor','k','LineWidth',1.0);
 
-    % Small elliptical gradient
+    % 小椭圆渐变
     x0 = posx + 0.06*range(xlim);
     y0 = posy + 0.14*range(ylim);
     a = 0.03 * range(xlim);
@@ -351,7 +351,7 @@ cb.LineWidth = 1;
     end
     plot(x0 + a*cos(theta), y0 + b*sin(theta), 'k', 'LineWidth', 1.2);
 
-    % Legend text
+    % 图例文字
     text(x0 + 0.056*range(xlim), y0, '$p$', ...
         'FontSize',23,'FontName','Times New Roman', ...
         'FontWeight','normal','Interpreter','latex', ...
